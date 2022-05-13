@@ -1,0 +1,7 @@
+# VARIABLE ENV
+.env
+
+# fichiers images 
+*.png
+*.jpeg
+*.jpg
