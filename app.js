@@ -5,14 +5,18 @@ const path = require("path");
 
 const app = express();
 
-// initialisation de la BDD
-mongoose
-  .connect(
-    `mongodb+srv://FPan7792:${process.env.MONGODBPASSWORD}@fpreactdb.3za4w.mongodb.net/hot_sauces?authSource=admin&replicaSet=atlas-vhk3x3-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true`,
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
-  .then(() => console.log("Connexion à MongoDB réussie !"))
-  .catch(() => console.log("Connexion à MongoDB échouée !"));
+// Connexion à la BDD MONGO
+mongoose.connect(
+  `mongodb+srv://FPan7792:${process.env.MONGODBPASSWORD}@fpreactdb.3za4w.mongodb.net/hot_sauces?authSource=admin&replicaSet=atlas-vhk3x3-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true`,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  (err) => {
+    if (err) {
+      console.error("Connexion à MongoDB échouée !", err.message);
+    } else {
+      console.log("Connexion à MongoDB réussie !");
+    }
+  }
+);
 
 // initialisation d'entetes
 app.use(cors());

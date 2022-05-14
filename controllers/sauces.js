@@ -1,4 +1,5 @@
 const Sauce = require("../models/Sauce");
+const fs = require("fs");
 
 exports.getAllSauces = async (req, res) => {
   try {
@@ -41,7 +42,7 @@ exports.createSauce = async (req, res) => {
       });
 
       // console.log("NEWSAUCE", newSauce);
-      delete newSauce._id;
+      // delete newSauce._id;
       await newSauce.save();
 
       res
@@ -57,20 +58,37 @@ exports.createSauce = async (req, res) => {
 exports.modifySauce = async (req, res) => {
   const { id } = req.params;
 
+  const targetedSauce = await Sauce.findOne({ _id: id });
+  let formerImage = targetedSauce.imageUrl.split("/images/")[1];
+  console.log("former", formerImage);
+
   if (req.body) {
     try {
-      let sauceToModify = {};
       if (req.file) {
-        sauceToModify = {
-          ...JSON.parse(req.body.sauce),
+        const sauce = JSON.parse(req.body.sauce);
+
+        let sauceToModify = {
+          ...sauce,
           imageUrl: `${req.protocol}://${req.get("host")}/images/${
             req.file.filename
           }`,
         };
-      } else sauceToModify = { ...req.body };
+        fs.unlink(`images/${formerImage}`, () => {
+          console.log("Unlinked");
+        });
 
-      await Sauce.updateOne({ _id: id }, { ...sauceToModify, _id: id });
-      res.status(200).json({ message: "Sauce effacée", SAUCE: sauceToModify });
+        await Sauce.findByIdAndUpdate({ _id: id }, sauceToModify);
+        res
+          .status(200)
+          .json({ message: "Sauce Modifiée", SAUCE: sauceToModify });
+      } else {
+        let sauceToModify = { ...req.body };
+
+        await Sauce.findByIdAndUpdate({ _id: id }, sauceToModify);
+        res
+          .status(200)
+          .json({ message: "Sauce Modifiée", SAUCE: sauceToModify });
+      }
     } catch (e) {
       console.error(e);
       res.status(400).send(e.message);
@@ -79,14 +97,18 @@ exports.modifySauce = async (req, res) => {
 };
 
 exports.deleteSauce = async (req, res) => {
-  // console.log("PARAMS", req.params);
   const { id } = req.params;
 
   if (id) {
     try {
       const searchedSauce = await Sauce.findOne({ _id: id });
 
-      await searchedSauce.delete();
+      const filename = searchedSauce.imageUrl.split("/images/")[1];
+
+      fs.unlink(`images/${filename}`, () => {
+        searchedSauce.delete();
+      });
+
       res.status(200).json({ message: "Sauce effacée", SAUCE: searchedSauce });
     } catch (e) {
       console.error(e);
