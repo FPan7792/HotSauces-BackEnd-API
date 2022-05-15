@@ -41,13 +41,11 @@ exports.createSauce = async (req, res) => {
         }`,
       });
 
-      // console.log("NEWSAUCE", newSauce);
-      // delete newSauce._id;
       await newSauce.save();
 
       res
-        .status(200)
-        .json({ message: "Nouvelle sauce enregistrée !", SAUCE: newSauce });
+        .status(201)
+        .json({ message: "Nouvelle sauce enregistrée !", Sauce: newSauce });
     } catch (e) {
       console.error(e);
       res.status(400).send(e.message);
@@ -78,22 +76,18 @@ exports.modifySauce = async (req, res) => {
         });
 
         await Sauce.findByIdAndUpdate({ _id: id }, sauceToModify);
-        res
-          .status(200)
-          .json({ message: "Sauce Modifiée", SAUCE: sauceToModify });
+        res.status(200).json({ message: "Sauce Modifiée" });
       } else {
         let sauceToModify = { ...req.body };
 
         await Sauce.findByIdAndUpdate({ _id: id }, sauceToModify);
-        res
-          .status(200)
-          .json({ message: "Sauce Modifiée", SAUCE: sauceToModify });
+        res.status(200).json({ message: "Sauce Modifiée" });
       }
     } catch (e) {
       console.error(e);
       res.status(400).send(e.message);
     }
-  } else res.status(404).send("Erreur: Champs manquants");
+  } else res.status(400).send("Erreur: Champs manquants");
 };
 
 exports.deleteSauce = async (req, res) => {
@@ -109,12 +103,12 @@ exports.deleteSauce = async (req, res) => {
         searchedSauce.delete();
       });
 
-      res.status(200).json({ message: "Sauce effacée", SAUCE: searchedSauce });
+      res.status(200).json({ message: "Sauce effacée" });
     } catch (e) {
       console.error(e);
       res.status(400).send(e.message);
     }
-  } else res.status(404).send("Erreur: Id requis");
+  } else res.status(400).send("Erreur: Id requis");
 };
 
 exports.appreciateSauce = async (req, res) => {
@@ -124,71 +118,59 @@ exports.appreciateSauce = async (req, res) => {
   if (req.body) {
     try {
       const targetedSauce = await Sauce.findOne({ id });
+      let { usersLiked, usersDisliked } = targetedSauce;
 
-      // console.log("TS", targetedSauce);
+      console.log("TS", targetedSauce);
 
-      switch (like) {
-        case 1:
-          targetedSauce.usersDisliked = removeElementfromSpecificArray(
-            targetedSauce.usersDisliked,
-            userId
-          );
-          targetedSauce.usersLiked.push(userId);
-          break;
+      if (like === 1) {
+        if (!usersLiked.find((elem) => elem === userId)) {
+          usersLiked.push(userId);
 
-        case -1:
-          targetedSauce.usersLiked = removeElementfromSpecificArray(
-            targetedSauce.usersLiked,
-            userId
+          const elemToRemove = usersDisliked.findIndex(
+            (elem) => elem === userId
           );
-          targetedSauce.usersDisliked.push(userId);
-          break;
+          if (elemToRemove !== -1) {
+            usersDisliked.splice(elemToRemove, 1);
+          }
+        }
+      } else if (like === -1) {
+        if (!usersDisliked.find((elem) => elem === userId)) {
+          usersDisliked.push(userId);
 
-        case 0:
-          targetedSauce.usersLiked = removeElementfromSpecificArray(
-            targetedSauce.usersLiked,
-            userId
-          );
-          targetedSauce.usersDisliked = removeElementfromSpecificArray(
-            targetedSauce.usersDisliked,
-            userId
-          );
-          break;
-        default:
-          targetedSauce;
-          break;
+          const elemToRemove = usersLiked.findIndex((elem) => elem === userId);
+          if (elemToRemove !== -1) {
+            usersLiked.splice(elemToRemove, 1);
+          }
+        }
+      } else if (like === 0) {
+        const elemToRemovefromLiked = usersLiked.findIndex(
+          (elem) => elem === userId
+        );
+        if (elemToRemovefromLiked !== -1) {
+          usersLiked.splice(elemToRemovefromLiked, 1);
+        }
+
+        const elemToRemovefromDisliked = usersDisliked.findIndex(
+          (elem) => elem === userId
+        );
+        if (elemToRemovefromDisliked !== -1) {
+          usersDisliked.splice(elemToRemovefromDisliked, 1);
+        }
       }
 
-      targetedSauce.likes = targetedSauce.usersLiked.length;
-      targetedSauce.dislikes = targetedSauce.usersDisliked.length;
+      let newSauce = {
+        likes: usersLiked.length,
+        dislikes: usersDisliked.length,
+        usersLiked,
+        usersDisliked,
+      };
 
-      await Sauce.findByIdAndUpdate(
-        { _id: id },
-        {
-          likes: targetedSauce.likes,
-          dislikes: targetedSauce.dislikes,
-          usersDisliked: targetedSauce.usersDisliked,
-          usersLiked: targetedSauce.usersLiked,
-        }
-      );
+      await Sauce.findByIdAndUpdate({ _id: id }, newSauce);
 
-      res
-        .status(200)
-        .json({ message: "Sauce likée ou dislikée", SAUCE: targetedSauce });
+      res.status(200).json({ message: "Sauce likée ou dislikée" });
     } catch (e) {
       console.error(e);
       res.status(400).send(e.message);
     }
-  } else res.status(404).send("Erreur: Champs manquants");
+  } else res.status(400).send("Erreur: Champs manquants");
 };
-
-async function removeElementfromSpecificArray(tab, idOfAGivenUser) {
-  const searchedUser = await tab.findIndex((elem) => elem === idOfAGivenUser);
-
-  if (searchedUser !== -1) {
-    const newTab = tab.splice(searchedUser, 1);
-    return newTab;
-  }
-
-  return tab;
-}
