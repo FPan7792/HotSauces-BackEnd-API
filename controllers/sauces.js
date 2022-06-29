@@ -58,7 +58,7 @@ exports.modifySauce = async (req, res) => {
 
   const targetedSauce = await Sauce.findOne({ _id: id });
   let formerImage = targetedSauce.imageUrl.split("/images/")[1];
-  console.log("former", formerImage);
+  console.log("FORMER IMAGE", formerImage);
 
   if (req.body) {
     try {
@@ -72,7 +72,7 @@ exports.modifySauce = async (req, res) => {
           }`,
         };
         fs.unlink(`images/${formerImage}`, () => {
-          console.log("Unlinked");
+          console.log("Image Unlinked");
         });
 
         await Sauce.findByIdAndUpdate({ _id: id }, sauceToModify);
@@ -119,8 +119,6 @@ exports.appreciateSauce = async (req, res) => {
     try {
       const targetedSauce = await Sauce.findOne({ id });
       let { usersLiked, usersDisliked } = targetedSauce;
-
-      console.log("TS", targetedSauce);
 
       if (like === 1) {
         if (!usersLiked.find((elem) => elem === userId)) {

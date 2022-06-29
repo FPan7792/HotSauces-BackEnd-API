@@ -44,7 +44,7 @@ exports.login = async (req, res) => {
     User.findOne({ email })
       .then((targetedUser) => {
         if (!targetedUser) {
-          res.status(400).send("Aucun utlisateur ne réponds à votre recherche");
+          res.status(400).send("Aucun utlisateur ne correspond");
         } else {
           argon2
             .verify(targetedUser.password, password)

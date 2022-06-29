@@ -1,8 +1,6 @@
 require("dotenv").config();
 
 // Import du module HTTPS pour sécuriser les requetes
-const https = require("https");
-const fs = require("fs");
 const http = require("http");
 
 // Import d l'application
@@ -46,15 +44,7 @@ const errorHandler = (error) => {
 };
 
 // Creation du server avec les routes en params
-const server = https.createServer(
-  {
-    key: fs.readFileSync("key.pem"),
-    cert: fs.readFileSync("cert.pem"),
-  },
-  app
-);
-
-const httpServer = http.createServer(app);
+const server = http.createServer(app);
 
 // Gestion du contexte
 server.on("error", errorHandler);
@@ -66,4 +56,3 @@ server.on("listening", () => {
 
 // mise en ecoute du serveur
 server.listen(port);
-httpServer.listen(3000);
