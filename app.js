@@ -5,9 +5,9 @@ const path = require("path");
 
 const app = express();
 
-// Connexion à la BDD MONGO
+// Connexion à la BDD locale MONGO
 mongoose.connect(
-  `mongodb+srv://FPan7792:${process.env.MONGODBPASSWORD}@fpreactdb.3za4w.mongodb.net/hot_sauces?authSource=admin&replicaSet=atlas-vhk3x3-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true`,
+  `mongodb://localhost/hot_sauces_api`,
   { useNewUrlParser: true, useUnifiedTopology: true },
   (err) => {
     if (err) {
